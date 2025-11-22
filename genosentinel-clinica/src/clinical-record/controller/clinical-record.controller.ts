@@ -15,11 +15,11 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
-import { ClinicalRecordService } from './clinical-record.service';
-import { CreateClinicalRecordDto } from './dto/create-clinical-record.dto';
-import { UpdateClinicalRecordDto } from './dto/update-clinical-record.dto';
-import { ClinicalRecordResponseDto } from './dto/clinical-record-response.dto';
-import { ApiResponseDto } from '../common/dto/api-response.dto';
+import { ClinicalRecordService } from '../service/clinical-record.service';
+import { CreateClinicalRecordDto } from '../dto/create-clinical-record.dto';
+import { UpdateClinicalRecordDto } from '../dto/update-clinical-record.dto';
+import { ClinicalRecordResponseDto } from '../dto/clinical-record-response.dto';
+import { ApiResponseDto } from '../../common/dto/api-response.dto';
 
 /**
  * Controlador REST para gestionar las operaciones relacionadas con historias clínicas

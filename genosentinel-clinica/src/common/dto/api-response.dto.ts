@@ -61,7 +61,7 @@ export class ApiResponseDto<T = any> {
     this.success = success;
     this.message = message;
     this.data = data;
-    // new Date() genera el timestamp actual en ISO 8601
+    // new Date() genera el timestamp
     this.timestamp = new Date();
   }
 }

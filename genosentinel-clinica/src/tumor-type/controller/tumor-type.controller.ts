@@ -16,11 +16,11 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
-import { TumorTypeService } from './tumor-type.service';
-import { CreateTumorTypeDto } from './dto/create-tumor-type.dto';
-import { UpdateTumorTypeDto } from './dto/update-tumor-type.dto';
-import { TumorTypeResponseDto } from './dto/tumor-type-response.dto';
-import { ApiResponseDto } from '../common/dto/api-response.dto';
+import { TumorTypeService } from '../service/tumor-type.service';
+import { CreateTumorTypeDto } from '../dto/create-tumor-type.dto';
+import { UpdateTumorTypeDto } from '../dto/update-tumor-type.dto';
+import { TumorTypeResponseDto } from '../dto/tumor-type-response.dto';
+import { ApiResponseDto } from '../../common/dto/api-response.dto';
 
 /**
  * Controlador REST para gestionar las operaciones relacionadas con tipos de tumor

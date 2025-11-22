@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Patient } from './entities/patient.entity';
-import { PatientService } from './patient.service';
-import { PatientController } from './patient.controller';
+import { PatientService } from './service/patient.service';
+import { PatientController } from './controller/patient.controller';
 
 /**
  * Módulo que agrupa toda la funcionalidad relacionada con pacientes

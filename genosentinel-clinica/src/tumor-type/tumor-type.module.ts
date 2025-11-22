@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TumorType } from './entities/tumor-type.entity';
-import { TumorTypeService } from './tumor-type.service';
-import { TumorTypeController } from './tumor-type.controller';
+import { TumorTypeService } from './service/tumor-type.service';
+import { TumorTypeController } from './controller/tumor-type.controller';
 
 /**
  * Módulo que agrupa toda la funcionalidad relacionada con tipos de tumor

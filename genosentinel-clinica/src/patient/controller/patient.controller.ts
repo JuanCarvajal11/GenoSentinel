@@ -15,11 +15,11 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
-import { PatientService } from './patient.service';
-import { CreatePatientDto } from './dto/create-patient.dto';
-import { UpdatePatientDto } from './dto/update-patient.dto';
-import { PatientResponseDto } from './dto/patient-response.dto';
-import { ApiResponseDto } from '../common/dto/api-response.dto';
+import { PatientService } from '../service/patient.service';
+import { CreatePatientDto } from '../dto/create-patient.dto';
+import { UpdatePatientDto } from '../dto/update-patient.dto';
+import { PatientResponseDto } from '../dto/patient-response.dto';
+import { ApiResponseDto } from '../../common/dto/api-response.dto';
 
 /**
  * Controlador REST para gestionar operaciones relacionadas con pacientes

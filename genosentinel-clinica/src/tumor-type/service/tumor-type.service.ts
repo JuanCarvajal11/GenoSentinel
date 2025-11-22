@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TumorType } from './entities/tumor-type.entity';
-import { CreateTumorTypeDto } from './dto/create-tumor-type.dto';
-import { UpdateTumorTypeDto } from './dto/update-tumor-type.dto';
-import { TumorTypeResponseDto } from './dto/tumor-type-response.dto';
+import { TumorType } from '../entities/tumor-type.entity';
+import { CreateTumorTypeDto } from '../dto/create-tumor-type.dto';
+import { UpdateTumorTypeDto } from '../dto/update-tumor-type.dto';
+import { TumorTypeResponseDto } from '../dto/tumor-type-response.dto';
 
 /**
  * Servicio TumorTypeService - Lógica de negocio para tipos de tumor

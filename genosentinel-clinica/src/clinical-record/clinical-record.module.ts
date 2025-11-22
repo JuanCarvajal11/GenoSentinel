@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClinicalRecord } from './entities/clinical-record.entity';
 import { Patient } from '../patient/entities/patient.entity';
 import { TumorType } from '../tumor-type/entities/tumor-type.entity';
-import { ClinicalRecordService } from './clinical-record.service';
+import { ClinicalRecordService } from './service/clinical-record.service';
 import { ClinicalRecordController } from './clinical-record.controller';
 
 /**

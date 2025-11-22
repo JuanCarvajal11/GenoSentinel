@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ClinicalRecord } from './entities/clinical-record.entity';
-import { CreateClinicalRecordDto } from './dto/create-clinical-record.dto';
-import { UpdateClinicalRecordDto } from './dto/update-clinical-record.dto';
-import { ClinicalRecordResponseDto } from './dto/clinical-record-response.dto';
-import { Patient } from '../patient/entities/patient.entity';
-import { TumorType } from '../tumor-type/entities/tumor-type.entity';
+import { ClinicalRecord } from '../entities/clinical-record.entity';
+import { CreateClinicalRecordDto } from '../dto/create-clinical-record.dto';
+import { UpdateClinicalRecordDto } from '../dto/update-clinical-record.dto';
+import { ClinicalRecordResponseDto } from '../dto/clinical-record-response.dto';
+import { Patient } from '../../patient/entities/patient.entity';
+import { TumorType } from '../../tumor-type/entities/tumor-type.entity';
 
 /**
  * Servicio ClinicalRecordService - Lógica de negocio para historias clínicas
  * 
  * ¿QUÉ HACE?
- * Maneja CRUD de historias clínicas (diagnósticos y tratamientos oncológicos)
+ * Maneja CRUD de historias clínicas (diagnósticos y tratamientos)
  * 
- * DIFERENCIA CON OTROS SERVICIOS:
+ * RESPONSABILIDADES:
  * - Inyecta 3 repositorios (Clinical, Patient, TumorType)
  * - Valida referencias cruzadas (paciente existe, tumor existe)
  * - Carga relaciones en respuestas (para evitar queries N+1)
@@ -33,7 +33,7 @@ export class ClinicalRecordService {
      * En entidades complejas que relacionan varias tablas,
      * inyectamos repositorios de todas las que necesitamos validar
      * 
-     * Alternativa: Podría usar @InjectRepository solo ClinicalRecord
+     * Podría usar @InjectRepository solo ClinicalRecord
      * y hacer eager loading, pero explícito es mejor que implícito
      */
     constructor(
@@ -141,19 +141,6 @@ export class ClinicalRecordService {
      * READ ALL - Obtiene todas las historias clínicas
      * 
      * @returns Promise<ClinicalRecordResponseDto[]> - Array de historias con relaciones
-     * 
-     * ¿CASO DE USO?
-     * - Dashboard de sistemas (últimos diagnósticos)
-     * - Reportes (análisis de tumores)
-     * - Admin (ver todos los records)
-     * 
-     * NOTA: En producción, agregar paginación aquí
-     * Si hay 100,000 historias, retornarlas todas es ineficiente
-     * 
-     * Mejora futura:
-     * findAll(page: number = 1, limit: number = 20)
-     * .skip((page - 1) * limit)
-     * .take(limit)
      */
     async findAll(): Promise<ClinicalRecordResponseDto[]> {
         // PASO 1: Consultar todas las historias con relaciones
@@ -175,8 +162,6 @@ export class ClinicalRecordService {
      * @returns Promise<ClinicalRecordResponseDto> - Historia con relaciones
      * @throws NotFoundException si no existe
      * 
-     * EJEMPLO:
-     * GET /clinical-records/550e8400-e29b-41d4-a716-446655440000
      */
     async findOne(id: string): Promise<ClinicalRecordResponseDto> {
         // PASO 1: Buscar historia por ID con relaciones
