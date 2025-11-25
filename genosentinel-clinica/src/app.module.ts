@@ -5,30 +5,24 @@ import { PatientModule } from './patient/patient.module';
 import { TumorTypeModule } from './tumor-type/tumor-type.module';
 import { ClinicalRecordModule } from './clinical-record/clinical-record.module';
 
-/**
- * Módulo principal que configura la aplicación
- */
+// Módulo raíz: configura variables de entorno, BD y módulos funcionales
 @Module({
   imports: [
-    // Módulo de configuración de variables de entorno
-    ConfigModule.forRoot({
-      isGlobal: true, // Hace que las variables estén disponibles globalmente
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
 
-    // Configuración de TypeORM para conexión a la base de datos
+    // Conexión a BD (configuración desde .env)
     TypeOrmModule.forRoot({
-      type: 'mysql', // Tipo de base de datos
-      host: process.env.DB_HOST || 'localhost', // Host de la BD
-      port: parseInt(process.env.DB_PORT ?? '3306'), // Puerto de la BD
-      username: process.env.DB_USER || 'root', // Usuario de la BD
-      password: process.env.DB_PASSWORD || '', // Contraseña de la BD
-      database: process.env.DB_NAME || 'genosentinel_db', // Nombre de la BD
-      entities: [__dirname + '/**/*.entity{.ts,.js}'], // Ubicación de las entidades
-      synchronize: false, // NO sincronizar automáticamente en producción
-      logging: true, // Habilitar logging de queries SQL
+      type: 'mysql',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT ?? '3306'),
+      username: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'genosentinel_db',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: false,
+      logging: true,
     }),
 
-    // Módulos de funcionalidad
     PatientModule,
     TumorTypeModule,
     ClinicalRecordModule,

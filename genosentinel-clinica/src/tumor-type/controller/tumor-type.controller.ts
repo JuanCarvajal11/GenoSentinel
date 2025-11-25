@@ -22,24 +22,14 @@ import { UpdateTumorTypeDto } from '../dto/update-tumor-type.dto';
 import { TumorTypeResponseDto } from '../dto/tumor-type-response.dto';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 
-/**
- * Controlador REST para gestionar las operaciones relacionadas con tipos de tumor
- */
-@ApiTags('tumor-types') // Etiqueta para agrupar endpoints en Swagger
-@Controller('tumor-types') // Ruta base: /tumor-types
+// Controlador REST para gestión de tipos de tumor
+@ApiTags('tumor-types')
+@Controller('tumor-types')
 export class TumorTypeController {
-  /**
-   * Constructor que inyecta el servicio de tipos de tumor
-   * @param tumorTypeService - Servicio con la lógica de negocio
-   */
   constructor(private readonly tumorTypeService: TumorTypeService) {}
 
-  /**
-   * Endpoint POST para crear un nuevo tipo de tumor
-   * Ruta: POST /tumor-types
-   */
   @Post()
-  @HttpCode(HttpStatus.CREATED) // Código HTTP 201
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear un nuevo tipo de tumor' })
   @ApiResponse({
     status: 201,
@@ -52,10 +42,6 @@ export class TumorTypeController {
     return this.tumorTypeService.create(createTumorTypeDto);
   }
 
-  /**
-   * Endpoint GET para obtener todos los tipos de tumor
-   * Ruta: GET /tumor-types
-   */
   @Get()
   @ApiOperation({ summary: 'Obtener todos los tipos de tumor' })
   @ApiResponse({
@@ -67,10 +53,6 @@ export class TumorTypeController {
     return this.tumorTypeService.findAll();
   }
 
-  /**
-   * Endpoint GET para obtener un tipo de tumor por ID
-   * Ruta: GET /tumor-types/:id
-   */
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un tipo de tumor por ID' })
   @ApiParam({ name: 'id', description: 'ID del tipo de tumor', type: Number })
@@ -84,10 +66,6 @@ export class TumorTypeController {
     return this.tumorTypeService.findOne(id);
   }
 
-  /**
-   * Endpoint PATCH para actualizar un tipo de tumor
-   * Ruta: PATCH /tumor-types/:id
-   */
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar un tipo de tumor existente' })
   @ApiParam({ name: 'id', description: 'ID del tipo de tumor', type: Number })
@@ -106,10 +84,6 @@ export class TumorTypeController {
     return this.tumorTypeService.update(id, updateTumorTypeDto);
   }
 
-  /**
-   * Endpoint DELETE para eliminar un tipo de tumor
-   * Ruta: DELETE /tumor-types/:id
-   */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar un tipo de tumor' })

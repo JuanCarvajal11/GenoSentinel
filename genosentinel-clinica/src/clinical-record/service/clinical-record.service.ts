@@ -8,318 +8,149 @@ import { ClinicalRecordResponseDto } from '../dto/clinical-record-response.dto';
 import { Patient } from '../../patient/entities/patient.entity';
 import { TumorType } from '../../tumor-type/entities/tumor-type.entity';
 
-/**
- * Servicio ClinicalRecordService - Lógica de negocio para historias clínicas
- * 
- * ¿QUÉ HACE?
- * Maneja CRUD de historias clínicas (diagnósticos y tratamientos)
- * 
- * RESPONSABILIDADES:
- * - Inyecta 3 repositorios (Clinical, Patient, TumorType)
- * - Valida referencias cruzadas (paciente existe, tumor existe)
- * - Carga relaciones en respuestas (para evitar queries N+1)
- * 
- * ¿POR QUÉ 3 repositorios?
- * ClinicalRecord depende de Patient y TumorType
- * No puedes crear historia sin paciente o sin tipo de tumor
- * Los inyectamos para validar integridad
- */
+// Lógica de negocio para gestión de historias clínicas
 @Injectable()
 export class ClinicalRecordService {
-    /**
-     * Constructor con inyección múltiple de dependencias
-     * 
-     * ¿MÚLTIPLES REPOSITORIOS?
-     * En entidades complejas que relacionan varias tablas,
-     * inyectamos repositorios de todas las que necesitamos validar
-     * 
-     * Podría usar @InjectRepository solo ClinicalRecord
-     * y hacer eager loading, pero explícito es mejor que implícito
-     */
-    constructor(
-        /**
-         * @InjectRepository(ClinicalRecord)
-         * 
-         * DECORADOR: Inyecta Repository para ClinicalRecord
-         * Usaremos este para operaciones CRUD principales
-         */
-        @InjectRepository(ClinicalRecord)
-        private readonly clinicalRecordRepository: Repository<ClinicalRecord>,
-        /**
-         * @InjectRepository(Patient)
-         * 
-         * DECORADOR: Inyecta Repository para Patient
-         * Usaremos para VALIDAR que paciente existe antes de crear historia
-         * No para modificar pacientes, solo para validar
-         */
-        @InjectRepository(Patient)
-        private readonly patientRepository: Repository<Patient>,
-        /**
-         * @InjectRepository(TumorType)
-         * 
-         * DECORADOR: Inyecta Repository para TumorType
-         * Usaremos para VALIDAR que tipo de tumor existe antes de crear historia
-         */
-        @InjectRepository(TumorType)
-        private readonly tumorTypeRepository: Repository<TumorType>,
-    ) {}
+  // Inyectar 3 repositorios: validar referencias cruzadas (patient, tumorType)
+  constructor(
+    @InjectRepository(ClinicalRecord)
+    private readonly clinicalRecordRepository: Repository<ClinicalRecord>,
+    @InjectRepository(Patient)
+    private readonly patientRepository: Repository<Patient>,
+    @InjectRepository(TumorType)
+    private readonly tumorTypeRepository: Repository<TumorType>,
+  ) {}
 
-    /**
-     * CREATE - Crea una nueva historia clínica
-     * 
-     * @param createClinicalRecordDto - DTO validado con datos de la historia
-     * @returns Promise<ClinicalRecordResponseDto> - Historia creada con relaciones
-     * @throws NotFoundException si paciente o tumor no existen
-     * 
-     * FLUJO DE NEGOCIO:
-     * 1. Validar que paciente existe (if no → 404)
-     * 2. Validar que tipo de tumor existe (if no → 404)
-     * 3. Crear record
-     * 4. Cargar relaciones (patient, tumorType)
-     * 5. Retornar como DTO
-     * 
-     * ¿POR QUÉ validamos primero?
-     * - Database debería validar con FOREIGN KEYS
-     * - Pero es mejor fallar rápido con 404
-     * - Mensajes de error claros para API clients
-     */
-    async create(
-        createClinicalRecordDto: CreateClinicalRecordDto,
-    ): Promise<ClinicalRecordResponseDto> {
-        // PASO 1: Validar que el paciente existe
-        // Si patient es undefined → lanzar excepción
-        const patient = await this.patientRepository.findOne({
-            where: { id: createClinicalRecordDto.patientId },
-        });
+  async create(
+    createClinicalRecordDto: CreateClinicalRecordDto,
+  ): Promise<ClinicalRecordResponseDto> {
+    // Validar que paciente y tipo de tumor existen
+    const patient = await this.patientRepository.findOne({
+      where: { id: createClinicalRecordDto.patientId },
+    });
 
-        if (!patient) {
-            // NotFoundException → HTTP 404
-            throw new NotFoundException(
-                `Paciente con ID ${createClinicalRecordDto.patientId} no encontrado`,
-            );
-        }
-
-        // PASO 2: Validar que el tipo de tumor existe
-        const tumorType = await this.tumorTypeRepository.findOne({
-            where: { id: createClinicalRecordDto.tumorTypeId },
-        });
-
-        if (!tumorType) {
-            throw new NotFoundException(
-                `Tipo de tumor con ID ${createClinicalRecordDto.tumorTypeId} no encontrado`,
-            );
-        }
-
-        // PASO 3: Crear instancia en memoria
-        // .create() asigna propiedades del DTO a la entidad
-        const clinicalRecord = this.clinicalRecordRepository.create(createClinicalRecordDto);
-
-        // PASO 4: Guardar en BD
-        // .save() INSERTA el record y retorna con ID generado
-        const savedRecord = await this.clinicalRecordRepository.save(clinicalRecord);
-
-        // PASO 5: Cargar relaciones
-        // Después de guardar, cargamos el record completo con relaciones
-        // Esto evita queries N+1 (un query para record, otro para patient, otro para tumor)
-        // Con relations: ['patient', 'tumorType'], obtenemos todo en un query con JOINs
-        const recordWithRelations = await this.clinicalRecordRepository.findOne({
-            where: { id: savedRecord.id },
-            relations: ['patient', 'tumorType'],
-        });
-
-        if (!recordWithRelations) {
-            throw new NotFoundException(
-                `Historia clínica con ID ${savedRecord.id} no encontrada`,
-            );
-        }
-
-        // PASO 6: Retornar como DTO
-        return new ClinicalRecordResponseDto(recordWithRelations);
+    if (!patient) {
+      throw new NotFoundException(
+        `Paciente con ID ${createClinicalRecordDto.patientId} no encontrado`,
+      );
     }
 
-    /**
-     * READ ALL - Obtiene todas las historias clínicas
-     * 
-     * @returns Promise<ClinicalRecordResponseDto[]> - Array de historias con relaciones
-     */
-    async findAll(): Promise<ClinicalRecordResponseDto[]> {
-        // PASO 1: Consultar todas las historias con relaciones
-        // relations: ['patient', 'tumorType'] hace JOINs internamente
-        // order: { createdAt: 'DESC' } muestra más nuevos primero
-        const clinicalRecords = await this.clinicalRecordRepository.find({
-            relations: ['patient', 'tumorType'],
-            order: { createdAt: 'DESC' },
-        });
+    const tumorType = await this.tumorTypeRepository.findOne({
+      where: { id: createClinicalRecordDto.tumorTypeId },
+    });
 
-        // PASO 2: Transformar cada historia a DTO
-        return clinicalRecords.map(record => new ClinicalRecordResponseDto(record));
+    if (!tumorType) {
+      throw new NotFoundException(
+        `Tipo de tumor con ID ${createClinicalRecordDto.tumorTypeId} no encontrado`,
+      );
     }
 
-    /**
-     * READ ONE - Obtiene una historia clínica específica
-     * 
-     * @param id - UUID de la historia clínica
-     * @returns Promise<ClinicalRecordResponseDto> - Historia con relaciones
-     * @throws NotFoundException si no existe
-     * 
-     */
-    async findOne(id: string): Promise<ClinicalRecordResponseDto> {
-        // PASO 1: Buscar historia por ID con relaciones
-        // relations: ['patient', 'tumorType'] permite acceder a:
-        // - record.patient.firstName, record.patient.lastName
-        // - record.tumorType.name, record.tumorType.systemAffected
-        const clinicalRecord = await this.clinicalRecordRepository.findOne({
-            where: { id },
-            relations: ['patient', 'tumorType'],
-        });
+    const clinicalRecord = this.clinicalRecordRepository.create(createClinicalRecordDto);
+    const savedRecord = await this.clinicalRecordRepository.save(clinicalRecord);
 
-        // PASO 2: Validar que existe
-        if (!clinicalRecord) {
-            throw new NotFoundException(
-                `Historia clínica con ID ${id} no encontrada`,
-            );
-        }
+    // Cargar relaciones para evitar queries N+1
+    const recordWithRelations = await this.clinicalRecordRepository.findOne({
+      where: { id: savedRecord.id },
+      relations: ['patient', 'tumorType'],
+    });
 
-        // PASO 3: Retornar como DTO
-        return new ClinicalRecordResponseDto(clinicalRecord);
+    if (!recordWithRelations) {
+      throw new NotFoundException(
+        `Historia clínica con ID ${savedRecord.id} no encontrada`,
+      );
     }
 
-    /**
-     * CUSTOM READ - Obtiene todas las historias de un paciente específico
-     * 
-     * @param patientId - UUID del paciente
-     * @returns Promise<ClinicalRecordResponseDto[]> - Array de historias del paciente
-     * @throws NotFoundException si paciente no existe
-     */
-    async findByPatient(patientId: string): Promise<ClinicalRecordResponseDto[]> {
-        // PASO 1: Validar que el paciente existe
-        const patient = await this.patientRepository.findOne({
-            where: { id: patientId },
-        });
+    return new ClinicalRecordResponseDto(recordWithRelations);
+  }
 
-        if (!patient) {
-            throw new NotFoundException(
-                `Paciente con ID ${patientId} no encontrado`,
-            );
-        }
+  async findAll(): Promise<ClinicalRecordResponseDto[]> {
+    const clinicalRecords = await this.clinicalRecordRepository.find({
+      relations: ['patient', 'tumorType'],
+      order: { createdAt: 'DESC' },
+    });
+    return clinicalRecords.map(record => new ClinicalRecordResponseDto(record));
+  }
 
-        // PASO 2: Consultar historias del paciente
-        // where: { patientId } filtra solo records de ese paciente
-        // relations: ['tumorType'] carga el tipo de tumor de cada historia
-        // No cargamos 'patient' porque ya lo tenemos validado
-        // order: { diagnosisDate: 'DESC' } muestra diagnósticos más recientes primero
-        const clinicalRecords = await this.clinicalRecordRepository.find({
-            where: { patientId },
-            relations: ['tumorType'],
-            order: { diagnosisDate: 'DESC' },
-        });
+  async findOne(id: string): Promise<ClinicalRecordResponseDto> {
+    const clinicalRecord = await this.clinicalRecordRepository.findOne({
+      where: { id },
+      relations: ['patient', 'tumorType'],
+    });
 
-        // PASO 3: Transformar a DTOs
-        return clinicalRecords.map(record => new ClinicalRecordResponseDto(record));
+    if (!clinicalRecord) {
+      throw new NotFoundException(
+        `Historia clínica con ID ${id} no encontrada`,
+      );
     }
 
-    /**
-     * UPDATE - Actualiza una historia clínica existente
-     * 
-     * @param id - UUID de la historia a actualizar
-     * @param updateClinicalRecordDto - DTO con campos a actualizar (PARCIALES)
-     * @returns Promise<ClinicalRecordResponseDto> - Historia actualizada
-     * @throws NotFoundException si no existe
-     * 
-     * NOTA: Aunque sea médico, cambiar campos críticos es delicado
-     * En producción, auditar QUIÉN cambió QUÉ
-     * 
-     * Ejemplo de cambios permitidos:
-     * - stage: "I" → "III" (después de pruebas adicionales)
-     * - treatmentProtocol: "..." → "nuevo protocolo"
-     * - diagnosisDate: Raramente, solo si hubo error
-     */
-    async update(
-        id: string,
-        updateClinicalRecordDto: UpdateClinicalRecordDto,
-    ): Promise<ClinicalRecordResponseDto> {
-        // PASO 1: Verificar que la historia existe
-        const clinicalRecord = await this.clinicalRecordRepository.findOne({
-            where: { id },
-        });
+    return new ClinicalRecordResponseDto(clinicalRecord);
+  }
 
-        if (!clinicalRecord) {
-            throw new NotFoundException(
-                `Historia clínica con ID ${id} no encontrada`,
-            );
-        }
+  async findByPatient(patientId: string): Promise<ClinicalRecordResponseDto[]> {
+    // Validar que el paciente existe
+    const patient = await this.patientRepository.findOne({
+      where: { id: patientId },
+    });
 
-        // PASO 2: Aplicar cambios
-        // Object.assign copia solo propiedades del DTO (si algunas faltan, se ignoran)
-        Object.assign(clinicalRecord, updateClinicalRecordDto);
-
-        // PASO 3: Persistir cambios en BD
-        // .save() detecta que existe (por ID) y ACTUALIZA
-        const updatedRecord = await this.clinicalRecordRepository.save(
-            clinicalRecord,
-        );
-
-        // PASO 4: Cargar relaciones para respuesta
-        // Necesitamos relaciones actualizadas para el DTO
-        const recordWithRelations = await this.clinicalRecordRepository.findOne({
-            where: { id: updatedRecord.id },
-            relations: ['patient', 'tumorType'],
-        });
-
-        if (!recordWithRelations) {
-            throw new NotFoundException(
-                `Historia clínica con ID ${updatedRecord.id} no encontrada`,
-            );
-        }
-
-        // PASO 5: Retornar actualizado
-        return new ClinicalRecordResponseDto(recordWithRelations);
+    if (!patient) {
+      throw new NotFoundException(
+        `Paciente con ID ${patientId} no encontrado`,
+      );
     }
 
-    /**
-     * DELETE - Elimina una historia clínica
-     * 
-     * @param id - UUID de la historia a eliminar
-     * @returns Promise<void> - Se resuelve cuando eliminación es exitosa
-     * @throws NotFoundException si no existe
-     * 
-     * ⚠️ CONSIDERACIÓN MÉDICA IMPORTANTE:
-     * ¿HARD DELETE o SOFT DELETE?
-     * 
-     * HARD DELETE (aquí):
-     * - Elimina físicamente de BD (no recuperable)
-     * - Riesgo: Perder datos médicos legalmente requeridos
-     * 
-     * SOFT DELETE (recomendado):
-     * - Agregar columna 'deletedAt' TIMESTAMP
-     * - Marcar como eliminado pero mantener datos
-     * - Recuperable para auditoría
-     * 
-     * Para datos médicos, SOFT DELETE es más seguro
-     * 
-     * Mejora futura:
-     * async remove(id: string): Promise<void> {
-     *   const record = await this.clinicalRecordRepository.findOne({where: {id}});
-     *   if (!record) throw new NotFoundException(...);
-     *   record.deletedAt = new Date();
-     *   await this.clinicalRecordRepository.save(record);
-     * }
-     */
-    async remove(id: string): Promise<void> {
-        // PASO 1: Verificar que existe
-        const clinicalRecord = await this.clinicalRecordRepository.findOne({
-            where: { id },
-        });
+    const clinicalRecords = await this.clinicalRecordRepository.find({
+      where: { patientId },
+      relations: ['tumorType'],
+      order: { diagnosisDate: 'DESC' },
+    });
 
-        if (!clinicalRecord) {
-            throw new NotFoundException(
-                `Historia clínica con ID ${id} no encontrada`,
-            );
-        }
+    return clinicalRecords.map(record => new ClinicalRecordResponseDto(record));
+  }
 
-        // PASO 2: Eliminar
-        // .remove() elimina físicamente de la BD
-        // En SQL: DELETE FROM clinical_record WHERE id = ?;
-        await this.clinicalRecordRepository.remove(clinicalRecord);
+  // TODO: Auditar cambios (quién, cuándo, qué cambió)
+  async update(
+    id: string,
+    updateClinicalRecordDto: UpdateClinicalRecordDto,
+  ): Promise<ClinicalRecordResponseDto> {
+    const clinicalRecord = await this.clinicalRecordRepository.findOne({
+      where: { id },
+    });
+
+    if (!clinicalRecord) {
+      throw new NotFoundException(
+        `Historia clínica con ID ${id} no encontrada`,
+      );
     }
+
+    Object.assign(clinicalRecord, updateClinicalRecordDto);
+    const updatedRecord = await this.clinicalRecordRepository.save(clinicalRecord);
+
+    const recordWithRelations = await this.clinicalRecordRepository.findOne({
+      where: { id: updatedRecord.id },
+      relations: ['patient', 'tumorType'],
+    });
+
+    if (!recordWithRelations) {
+      throw new NotFoundException(
+        `Historia clínica con ID ${updatedRecord.id} no encontrada`,
+      );
+    }
+
+    return new ClinicalRecordResponseDto(recordWithRelations);
+  }
+
+  // TODO: Cambiar a soft delete con columna deletedAt (requiere auditoría legal)
+  async remove(id: string): Promise<void> {
+    const clinicalRecord = await this.clinicalRecordRepository.findOne({
+      where: { id },
+    });
+
+    if (!clinicalRecord) {
+      throw new NotFoundException(
+        `Historia clínica con ID ${id} no encontrada`,
+      );
+    }
+
+    await this.clinicalRecordRepository.remove(clinicalRecord);
+  }
 }

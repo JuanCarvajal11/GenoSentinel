@@ -21,24 +21,14 @@ import { UpdateClinicalRecordDto } from '../dto/update-clinical-record.dto';
 import { ClinicalRecordResponseDto } from '../dto/clinical-record-response.dto';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 
-/**
- * Controlador REST para gestionar las operaciones relacionadas con historias clínicas
- */
-@ApiTags('clinical-records') // Etiqueta para agrupar endpoints en Swagger
-@Controller('clinical-records') // Ruta base: /clinical-records
+// Controlador REST para gestión de historias clínicas
+@ApiTags('clinical-records')
+@Controller('clinical-records')
 export class ClinicalRecordController {
-  /**
-   * Constructor que inyecta el servicio de historias clínicas
-   * @param clinicalRecordService - Servicio con la lógica de negocio
-   */
   constructor(private readonly clinicalRecordService: ClinicalRecordService) {}
 
-  /**
-   * Endpoint POST para crear una nueva historia clínica
-   * Ruta: POST /clinical-records
-   */
   @Post()
-  @HttpCode(HttpStatus.CREATED) // Código HTTP 201
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear una nueva historia clínica' })
   @ApiResponse({
     status: 201,
@@ -53,10 +43,6 @@ export class ClinicalRecordController {
     return this.clinicalRecordService.create(createClinicalRecordDto);
   }
 
-  /**
-   * Endpoint GET para obtener todas las historias clínicas
-   * Ruta: GET /clinical-records
-   */
   @Get()
   @ApiOperation({ summary: 'Obtener todas las historias clínicas' })
   @ApiResponse({
@@ -68,10 +54,6 @@ export class ClinicalRecordController {
     return this.clinicalRecordService.findAll();
   }
 
-  /**
-   * Endpoint GET para obtener una historia clínica por ID
-   * Ruta: GET /clinical-records/:id
-   */
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una historia clínica por ID' })
   @ApiParam({ name: 'id', description: 'UUID de la historia clínica' })
@@ -85,16 +67,13 @@ export class ClinicalRecordController {
     return this.clinicalRecordService.findOne(id);
   }
 
-  /**
-   * Endpoint GET para obtener todas las historias clínicas de un paciente
-   * Ruta: GET /clinical-records/patient/:patientId
-   */
+  // Obtener todas las historias de un paciente
   @Get('patient/:patientId')
-  @ApiOperation({ summary: 'Obtener todas las historias clínicas de un paciente' })
+  @ApiOperation({ summary: 'Obtener historias clínicas de un paciente' })
   @ApiParam({ name: 'patientId', description: 'UUID del paciente' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de historias clínicas del paciente obtenida exitosamente',
+    description: 'Historias obtenidas exitosamente',
     type: [ClinicalRecordResponseDto],
   })
   @ApiResponse({ status: 404, description: 'Paciente no encontrado' })
@@ -102,12 +81,8 @@ export class ClinicalRecordController {
     return this.clinicalRecordService.findByPatient(patientId);
   }
 
-  /**
-   * Endpoint PATCH para actualizar una historia clínica
-   * Ruta: PATCH /clinical-records/:id
-   */
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar una historia clínica existente' })
+  @ApiOperation({ summary: 'Actualizar una historia clínica' })
   @ApiParam({ name: 'id', description: 'UUID de la historia clínica' })
   @ApiResponse({
     status: 200,
@@ -123,10 +98,6 @@ export class ClinicalRecordController {
     return this.clinicalRecordService.update(id, updateClinicalRecordDto);
   }
 
-  /**
-   * Endpoint DELETE para eliminar una historia clínica
-   * Ruta: DELETE /clinical-records/:id
-   */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar una historia clínica' })
