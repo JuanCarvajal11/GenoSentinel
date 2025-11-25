@@ -190,15 +190,6 @@ export class ClinicalRecordService {
      * @param patientId - UUID del paciente
      * @returns Promise<ClinicalRecordResponseDto[]> - Array de historias del paciente
      * @throws NotFoundException si paciente no existe
-     * 
-     * ¿CASO DE USO?
-     * - Vista de paciente: "Ver todo historial clínico de Juan"
-     * - GET /clinical-records/patient/uuid-juan
-     * 
-     * ¿POR QUÉ validar paciente?
-     * Aunque sea custom, queremos 404 si paciente no existe
-     * No "silencio" retornando array vacío
-     * El cliente sabe si paciente no existe (semántica clara)
      */
     async findByPatient(patientId: string): Promise<ClinicalRecordResponseDto[]> {
         // PASO 1: Validar que el paciente existe
