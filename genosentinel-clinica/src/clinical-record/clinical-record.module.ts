@@ -6,15 +6,11 @@ import { TumorType } from '../tumor-type/entities/tumor-type.entity';
 import { ClinicalRecordService } from './service/clinical-record.service';
 import { ClinicalRecordController } from './controller/clinical-record.controller';
 
-/**
- * Módulo que agrupa toda la funcionalidad relacionada con historias clínicas
- */
+// Módulo para gestión de historias clínicas
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ClinicalRecord, Patient, TumorType]), // Registra los repositorios necesarios
-  ],
-  controllers: [ClinicalRecordController], // Registra el controlador
-  providers: [ClinicalRecordService], // Registra el servicio
-  exports: [ClinicalRecordService], // Exporta el servicio para uso en otros módulos
+  imports: [TypeOrmModule.forFeature([ClinicalRecord, Patient, TumorType])],
+  controllers: [ClinicalRecordController],
+  providers: [ClinicalRecordService],
+  exports: [ClinicalRecordService],
 })
 export class ClinicalRecordModule {}
