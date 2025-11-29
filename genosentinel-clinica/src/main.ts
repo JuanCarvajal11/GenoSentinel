@@ -10,6 +10,8 @@ async function bootstrap() {
   // Crear instancia de la aplicación NestJS
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix('clinica');
+  
   // Configurar validación global de DTOs
   app.useGlobalPipes(
     new ValidationPipe({

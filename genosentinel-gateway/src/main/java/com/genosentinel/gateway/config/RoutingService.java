@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
@@ -40,12 +42,25 @@ public class RoutingService {
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
         String targetUrl = baseUrl + path;
+        String queryString = request.getQueryString();
+        if (queryString != null && !queryString.isEmpty()) {
+            targetUrl = targetUrl + "?" + queryString;
+        }
 
-        return restTemplate.exchange(
-                targetUrl,
-                method,
-                entity,
-                String.class
-        );
+        try {
+            // Enviar la solicitud al microservicio destino
+            return restTemplate.exchange(
+                    targetUrl,
+                    method,
+                    entity,
+                    String.class
+            );
+
+        } catch (HttpClientErrorException | HttpServerErrorException ex) {
+            // Reenviar EXACTAMENTE el JSON que devuelve el microservicio
+            return ResponseEntity
+                    .status(ex.getStatusCode())
+                    .body(ex.getResponseBodyAsString());
+        }
     }
 }

@@ -115,4 +115,4 @@ SWAGGER_SETTINGS = {
 }
 
 # Clinic Service Configuration
-CLINIC_SERVICE_URL = config('CLINIC_SERVICE_URL', default='http://localhost:8001/api/v1')
+CLINIC_SERVICE_URL = config('CLINIC_SERVICE_URL')

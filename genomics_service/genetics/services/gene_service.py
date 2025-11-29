@@ -211,27 +211,6 @@ class GeneService:
         return genes
     
     @staticmethod
-    def get_gene_by_symbol(symbol: str) -> GeneResponseDTO:
-        """
-        Obtiene un gen por su símbolo exacto
-        
-        Args:
-            symbol: Símbolo del gen
-            
-        Returns:
-            GeneResponseDTO: DTO con datos del gen
-            
-        Raises:
-            NotFound: Si el gen no existe
-        """
-        gene = GeneRepository.find_by_symbol(symbol)
-        if not gene:
-            logger.warning(f"Intento de obtener gen inexistente por símbolo: {symbol}")
-            raise NotFound(f'Gen con símbolo "{symbol}" no encontrado')
-        
-        return GeneResponseDTO.from_model(gene)
-    
-    @staticmethod
     def get_gene_statistics():
         """
         Obtiene estadísticas de genes

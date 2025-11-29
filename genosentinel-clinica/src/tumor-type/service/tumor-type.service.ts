@@ -227,17 +227,18 @@ export class TumorTypeService {
    * 
    * Para datos médicos, soft delete es más recomendado por auditoría
    */
-  async remove(id: number): Promise<void> {
-    // PASO 1: Verificar que existe
-    const tumorType = await this.tumorTypeRepository.findOne({ where: { id } });
-    
-    if (!tumorType) {
-      throw new NotFoundException(`Tipo de tumor con ID ${id} no encontrado`);
+  async remove(id: number) {
+  try {
+    await this.tumorTypeRepository.delete(id);
+    return { message: "Tipo de tumor eliminado correctamente" };
+  } catch (error) {
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      throw new ConflictException(
+        "No se puede eliminar el tipo de tumor porque está asociado a historias clínicas."
+      );
     }
-
-    // PASO 2: Eliminar
-    // .remove() elimina físicamente de la BD
-    // En SQL: DELETE FROM tumor_type WHERE id=?;
-    await this.tumorTypeRepository.remove(tumorType);
+    throw error;
   }
+}
+
 }

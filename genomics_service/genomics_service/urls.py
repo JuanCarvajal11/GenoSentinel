@@ -9,27 +9,23 @@ schema_view = get_schema_view(
         title="Genomics Microservice API",
         default_version='v1',
         description="""
-        # Microservicio de Genómica Oncológica
+        # Microservicio de Genómica
         
-        Este microservicio proporciona funcionalidades para gestionar información genómica oncológica:
+        Este microservicio proporciona funcionalidades para gestionar información genómica
         
         ## Características principales:
         
         ### 1. Gestión de Genes
-        - Catalogar genes de interés oncológico
         - CRUD completo de genes
-        - Búsqueda por símbolo
+
         
         ### 2. Gestión de Variantes Genéticas
-        - Registro de mutaciones específicas
-        - Información de ubicación cromosómica
-        - Clasificación por impacto (Missense, Frameshift, Nonsense, Silent, Unknown)
+        - Registro de mutaciones específica
         
         ### 3. Gestión de Reportes de Pacientes
         - Asociar variantes genéticas a pacientes
         - Integración con microservicio de clínica
         - Consulta de información clínica del paciente
-        - Frecuencia alélica y fecha de detección
         
         ## Integración con Microservicio de Clínica
         
@@ -51,7 +47,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include('genetics.urls')),
+    path('genoma/', include('genetics.urls')),
     
     # Swagger/OpenAPI URLs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', 

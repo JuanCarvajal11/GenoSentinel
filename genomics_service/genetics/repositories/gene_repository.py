@@ -44,22 +44,6 @@ class GeneRepository:
             return None
     
     @staticmethod
-    def find_by_symbol(symbol: str) -> Optional[Gene]:
-        """
-        Busca un gen por su símbolo (exacto)
-        
-        Args:
-            symbol: Símbolo del gen
-            
-        Returns:
-            Gene o None si no existe
-        """
-        try:
-            return Gene.objects.get(symbol=symbol)
-        except Gene.DoesNotExist:
-            return None
-    
-    @staticmethod
     def exists_by_symbol(symbol: str) -> bool:
         """
         Verifica si existe un gen con el símbolo dado
