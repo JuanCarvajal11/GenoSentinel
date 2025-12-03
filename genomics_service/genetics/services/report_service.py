@@ -24,8 +24,9 @@ class ReportService:
         except GeneticVariant.DoesNotExist:
             raise ValidationError({'variant_id': 'La variante especificada no existe'})
         
-        # Validar que el paciente exista en el microservicio de clínica
-        if not self.clinic_service.validate_patient_exists(dto.patient_id):
+        # Obtener información del paciente directamente
+        patient_data = self.clinic_service.fetch_patient(dto.patient_id)
+        if not patient_data:
             raise ValidationError({
                 'patient_id': 'El paciente especificado no existe en el sistema de clínica'
             })
@@ -37,10 +38,7 @@ class ReportService:
                 detection_date=date.fromisoformat(dto.detection_date),
                 allele_frequency=dto.allele_frequency
             )
-        
-        # Obtener datos del paciente para el response
-        patient_data = self.clinic_service.get_patient_info(dto.patient_id)
-        
+             
         return ReportResponseDTO.from_model(report, patient_data)
     
     def update_report(self, report_id: str, dto: ReportUpdateDTO) -> ReportResponseDTO:
@@ -65,7 +63,7 @@ class ReportService:
             report.save()
         
         # Obtener datos del paciente para el response
-        patient_data = self.clinic_service.get_patient_info(report.patient_id)
+        patient_data = self.clinic_service.fetch_patient(report.patient_id)
         
         return ReportResponseDTO.from_model(report, patient_data)
     
@@ -77,7 +75,7 @@ class ReportService:
             ).get(pk=report_id)
             
             # Obtener datos del paciente
-            patient_data = self.clinic_service.get_patient_info(report.patient_id)
+            patient_data = self.clinic_service.fetch_patient(report.patient_id)
             
             return ReportResponseDTO.from_model(report, patient_data)
         except PatientVariantReport.DoesNotExist:
@@ -119,7 +117,7 @@ class ReportService:
     def get_patient_reports(self, patient_id: str):
         """Obtiene todos los reportes de un paciente específico"""
         # Validar que el paciente existe
-        if not self.clinic_service.validate_patient_exists(patient_id):
+        if not self.clinic_service.fetch_patient(patient_id):
             raise ValidationError({
                 'patient_id': 'El paciente especificado no existe en el sistema de clínica'
             })
@@ -134,7 +132,7 @@ class ReportService:
         patient_ids = list(set([str(report.patient_id) for report in reports]))
         
         # Obtener datos de pacientes en lote
-        patients_data = self.clinic_service.get_patients_batch(patient_ids)
+        patients_data = self.clinic_service.fetch_patients_batch(patient_ids)
         
         # Crear DTOs con datos enriquecidos
         result = []

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: genosentinel
+data:
+  MYSQL_DATABASE: "genosentinel_db"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: genosentinel
+data:
+  # Variables para NestJS
+  NODE_ENV: "production"
+  DB_PORT: "3306"
+  DB_DATABASE: "genosentinel_db"
+  DB_USERNAME: "root"
+  
+  # Variables para Django
+  DEBUG: "False"
+  DB_ENGINE: "django.db.backends.mysql"
+  DB_NAME: "genosentinel_db"
+  DB_USER: "root"
+  
+  # Variables para Spring Boot
+  SPRING_PROFILES_ACTIVE: "prod"

@@ -1,0 +1,65 @@
+CREATE database IF NOT EXISTS genosentinel_db;
+
+use genosentinel_db;
+
+-- Tabla para pacientes
+CREATE TABLE patient (
+    id VARCHAR(36) PRIMARY KEY, -- UUID
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    birth_date DATE NOT NULL,
+    gender ENUM('M', 'F', 'Otro') NOT NULL,
+    status ENUM('Activo', 'Seguimiento', 'Inactivo') DEFAULT 'Activo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Tipos de tumor
+CREATE TABLE tumor_type (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    system_affected VARCHAR(150) NOT NULL
+);
+
+-- Genes
+CREATE TABLE gene (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    symbol VARCHAR(50) NOT NULL,
+    full_name VARCHAR(255),
+    function_summary TEXT
+);
+
+-- Variantes genéticas
+CREATE TABLE genetic_variant (
+    id VARCHAR(36) PRIMARY KEY,
+    gene_id INT NOT NULL,
+    chromosome VARCHAR(10),
+    position INT,
+    reference_base CHAR(1),
+    alternate_base CHAR(1),
+    impact ENUM('Missense', 'Frameshift', 'Nonsense', 'Silent', 'Unknown') DEFAULT 'Unknown',
+    FOREIGN KEY (gene_id) REFERENCES gene(id)
+);
+
+-- Historias clínicas
+CREATE TABLE clinical_record (
+    id VARCHAR(36) PRIMARY KEY,
+    patient_id VARCHAR(36) NOT NULL,
+    tumor_type_id INT NOT NULL,
+    diagnosis_date DATE NOT NULL,
+    stage VARCHAR(10),
+    treatment_protocol VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    FOREIGN KEY (patient_id) REFERENCES patient(id),
+    FOREIGN KEY (tumor_type_id) REFERENCES tumor_type(id)
+);
+
+-- Reportes de variantes por paciente
+CREATE TABLE patient_variant_report (
+    id VARCHAR(36) PRIMARY KEY,
+    patient_id VARCHAR(36) NOT NULL,  -- se consulta en microservicio clínica
+    variant_id VARCHAR(36) NOT NULL,
+    detection_date DATE NOT NULL,
+    allele_frequency DECIMAL(5,2),
+    FOREIGN KEY (patient_id) REFERENCES patient(id),
+    FOREIGN KEY (variant_id) REFERENCES genetic_variant(id)
+);

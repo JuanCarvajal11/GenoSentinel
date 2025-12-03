@@ -170,7 +170,11 @@ class GeneViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, pk=None):
         GeneService.delete_gene(pk)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+        {"message": "Gen eliminado exitosamente"},
+        status=status.HTTP_200_OK
+        )
+
     
     @swagger_auto_schema(
         operation_summary="Buscar genes por símbolo",
@@ -195,25 +199,8 @@ class GeneViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def search(self, request):
         symbol = request.query_params.get('symbol', '')
-        
-        # DEBUG: Prints temporales
-        print("=" * 60)
-        print(f"🔍 VISTA - Query params recibidos: {dict(request.query_params)}")
-        print(f"🔍 VISTA - Symbol extraído: '{symbol}'")
-        print(f"🔍 VISTA - Tipo: {type(symbol)}, Longitud: {len(symbol)}")
-        print("=" * 60)
-        
         genes = GeneService.search_genes_by_symbol(symbol)
-        
-        print(f"✅ VISTA - Genes del servicio: {len(genes)} genes encontrados")
-        print(f"✅ VISTA - Símbolos: {[g.symbol for g in genes]}")
-        
         serialized_data = GeneSerializer(genes, many=True).data
-        
-        print(f"✅ VISTA - Datos serializados: {serialized_data}")
-        print(f"✅ VISTA - Tipo de respuesta: {type(serialized_data)}")
-        print("=" * 60)
-        
         return Response(serialized_data)
 
 
@@ -370,7 +357,10 @@ class VariantViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, pk=None):
         VariantService.delete_variant(pk)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+        {"message": "Variante eliminada exitosamente"},
+        status=status.HTTP_200_OK
+    )
     
     @swagger_auto_schema(
         operation_summary="Obtener variantes por gen",
@@ -652,7 +642,10 @@ class ReportViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, pk=None):
         self.report_service.delete_report(pk)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+        {"detail": "Reporte eliminado exitosamente"},
+        status=status.HTTP_200_OK
+    )
 
     @swagger_auto_schema(
         operation_summary="Obtener reportes de un paciente",

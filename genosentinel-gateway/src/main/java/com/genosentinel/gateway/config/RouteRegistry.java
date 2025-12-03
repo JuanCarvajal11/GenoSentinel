@@ -9,8 +9,8 @@ import java.util.Optional;
 public class RouteRegistry {
 
     private final Map<String, String> routes = Map.of(
-            "/clinica", "http://localhost:3000",
-            "/genoma", "http://localhost:8000"
+            "/clinica", "http://clinica-service:3000",
+            "/genoma", "http://genomica-service:8000"
     );
 
     public Optional<String> getRoute(String route) {

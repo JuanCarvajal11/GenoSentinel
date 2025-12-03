@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: genosentinel_web
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=django-insecure-local-key
+      - ALLOWED_HOSTS=localhost,127.0.0.1,web
+      - DB_ENGINE=django.db.backends.mysql
+      - DB_NAME=genosentinel_db
+      - DB_USER=root
+      - DB_PASSWORD=12345678
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - CLINIC_SERVICE_URL=http://localhost:8001
+    volumes:
+      - .:/app

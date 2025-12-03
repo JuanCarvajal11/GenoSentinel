@@ -1,0 +1,51 @@
+services:
+  # Base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: genosentinel-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: genosentinel_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - genosentinel-network
+
+  # Aplicación NestJS
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: genosentinel-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: 12345678
+      DB_DATABASE: genosentinel_db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dist:/app/dist
+      - ./node_modules:/app/node_modules
+    networks:
+      - genosentinel-network
+
+volumes:
+  mysql_data:
+
+networks:
+  genosentinel-network:
+    driver: bridge

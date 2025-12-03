@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genomica
+  namespace: genosentinel
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: genomica
+  template:
+    metadata:
+      labels:
+        app: genomica
+    spec:
+      containers:
+      - name: genomica
+        image: genosentinel/genomica:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DEBUG
+        - name: DB_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_ENGINE
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-password
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_NAME
+        - name: DJANGO_SETTINGS_MODULE
+          value: "genomics_service.settings"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        # Health checks comentados temporalmente
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health/
+        #     port: 8000
+        #   initialDelaySeconds: 60
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health/
+        #     port: 8000
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 5
+        #   timeoutSeconds: 3
+        #   failureThreshold: 3
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genomica-service
+  namespace: genosentinel
+spec:
+  type: ClusterIP
+  selector:
+    app: genomica
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
